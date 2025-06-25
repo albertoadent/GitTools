@@ -3,6 +3,10 @@ param(
     [string]$User
 )
 
+if(-not $User) {
+    $User = Read-Host "Enter your Git profile name"
+}
+
 $modulePath = Join-Path ($env:PSModulePath -split ';' | Select-Object -First 1) "GitTools"
 $repoUrl = "https://github.com/albertoadent/GitTools.git"
 
