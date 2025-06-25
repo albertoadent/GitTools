@@ -40,7 +40,7 @@ function Get-Git {
         User = "current"
         Name = $name
         Email = $email
-        Token = $null
+        Token = (git config user.token)
     }   
 }
 
@@ -147,4 +147,65 @@ Update-GitTools {
     }
 }
 
-Export-ModuleMember -Function New-Git, Get-Git, Set-Git, Remove-Git, Update-GitTools
+function Create-Repo {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string] $Name,
+        [string] $Description = "",
+        [string] $Path = ".",
+        [ValidateSet("public","private")]
+        [string] $Visibility = "private"
+    )
+
+    #Load active git profile
+    $profile = Get-Git
+    
+    if(-not $profile) {
+        Write-Error "No active git profile found."
+        return
+    }
+
+    $headers = @{
+        "Authorization" = "Bearer $($profile.Token)"
+        "Accept" = "application/vnd.github+json"
+        "X-GitHub-Api-Version" = "2022-11-28"
+        "User-Agent" = "$($profile.User)"
+    }
+
+    $body = @{
+        name = $Name
+        description = $Description
+        private = ($Visibility -eq "private")
+        auto_init = $false
+    } | ConvertTo-Json -Depth 3
+
+    $response = Invoke-RestMethod -Uri "https://api.github.com/user/repos" -Headers $headers -Method Post -Body $body
+
+    if($response.message -eq "Bad credentials") {
+        Write-Error "Invalid token. Please check your token and try again."
+        return
+    }
+
+    Write-Host "Repository $Name created successfully."
+
+    #push local content to remote repo
+
+    $abspath = Resolve-Path $Path
+    Push-Location $abspath
+
+    if(-not (Test-Path .git)) {
+        git init
+        git add .
+        git commit -m "Initial commit"
+    }
+
+    git remote add origin $response.clone_url
+    git branch -M main
+    git push -u origin main
+
+    Pop-Location
+    
+    
+}
+
+Export-ModuleMember -Function New-Git, Get-Git, Set-Git, Remove-Git, Update-GitTools, Create-Repo
