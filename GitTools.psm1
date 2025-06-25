@@ -116,4 +116,35 @@ function Remove-Git {
     }
 }
 
-Export-ModuleMember -Function New-Git, Get-Git, Set-Git, Remove-Git
+Update-GitTools {
+    [CmdletBinding()]
+    param()
+
+    $modulePath = Join-Path ($env:PSModulePath -split ';' | Select-Object -First 1) "GitTools"
+
+    if(-not (Test-Path $modulePath)) {
+        Write-Error "GitTools module not found."
+        return
+    }
+
+    if(-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Write-Error "Git is not installed. Installing Git..."
+        winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements
+        Start-Sleep -Seconds 10
+        if(-not (Get-Command git -ErrorAction SilentlyContinue)) {
+            Write-Error "Git is not installed. Please install Git and try again."
+            return
+        }
+    }
+
+    try{
+        Write-Host "Updating GitTools..."
+        git -C $modulePath pull
+        Write-Host "GitTools updated successfully."
+    } catch {
+        Write-Error "Failed to update GitTools. Please try again."
+        return
+    }
+}
+
+Export-ModuleMember -Function New-Git, Get-Git, Set-Git, Remove-Git, Update-GitTools
