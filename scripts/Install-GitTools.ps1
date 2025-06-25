@@ -30,9 +30,22 @@ if(-not (Test-Path $modulePath)) {
 
 Import-Module -Name $modulePath/GitTools.psm1 -Force
 
-if(Test-Path $modulePath/GitTools.psm1) {
+$profilePath = Join-Path $modulePath "git-users\$User.json"
+
+if(Test-Path $profilePath) {
     Set-Git -User $User
     Write-Host "Git profile $User applied."
 } else {
     Write-Warning "Git profile $User not found. Run New-Git to create it."
+    $confirm = Read-Host "Do you want to create a new profile? (y/n)"
+    if($confirm -eq "y") {
+        $name = Read-Host "Enter your name"
+        $email = Read-Host "Enter your email"
+        $token = Read-Host "Enter your Github token (paste carefuly)"
+        New-Git -User $User -Name $name -Email $email -Token $token
+        Write-Host "Git profile $User created successfully."
+    } else {
+        Write-Host "Git profile $User not created."
+        exit 1
+    }
 }
