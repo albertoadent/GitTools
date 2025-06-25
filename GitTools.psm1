@@ -116,7 +116,7 @@ function Remove-Git {
     }
 }
 
-Update-GitTools {
+function Update-GitTools {
     [CmdletBinding()]
     param()
 
@@ -200,7 +200,7 @@ function Create-Repo {
     }
 
     git remote add origin $response.clone_url
-    git branch -M main
+    git branch -M main  
     git push -u origin main
 
     Pop-Location
