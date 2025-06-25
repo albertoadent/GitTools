@@ -3,7 +3,7 @@ param(
     [string]$User
 )
 
-$modulePath = Join-Path $env:PSModulePath "GitTools"
+$modulePath = Join-Path ($env:PSModulePath -split ';' | Select-Object -First 1) "GitTools"
 $repoUrl = "https://github.com/albertoadent/GitTools.git"
 
 if(-not (Get-Command git -ErrorAction SilentlyContinue)) {
