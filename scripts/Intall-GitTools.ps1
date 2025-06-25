@@ -7,8 +7,16 @@ $modulePath = Join-Path $env:PSModulePath "GitTools"
 $repoUrl = "https://github.com/albertoadent/GitTools.git"
 
 if(-not Get-Command git -ErrorAction SilentlyContinue) {
-    Write-Error "Git is not installed. Please install Git and try again."
-    exit 1
+    Write-Error "Git is not installed. Installing Git..."
+    winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements
+    
+    Start-Sleep -Seconds 10
+    if(-not Get-Command git -ErrorAction SilentlyContinue) {
+        Write-Error "Git is not installed. Please install Git and try again."
+        exit 1
+    }
+
+    Write-Host "Git installed successfully."
 }
 
 if(-not (Test-Path $modulePath)) {
